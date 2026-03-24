@@ -1,115 +1,77 @@
 # app/vector_memory.py
-import os
-from supabase import create_client, Client
-from anthropic import Anthropic
-from dotenv import load_dotenv
-import json
+# ── Local SQLite fallback — no Supabase required ───────────
+# Drop-in replacement. Same function signatures, zero cloud deps.
+# Upgrade to Supabase/Chroma later when ready.
 
-load_dotenv()
+import sqlite3
+import time
 
-# Initialize clients
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
-)
-anthropic = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+DB_PATH = "rokai_memory.db"
 
+def _conn():
+    return sqlite3.connect(DB_PATH, check_same_thread=False)
 
-def create_embedding(text: str) -> list:
-    """
-    Convert text to vector embedding using Claude
-    
-    Args:
-        text: The text to embed
-    
-    Returns:
-        List of 1024 floats representing the embedding
-    """
-    # Note: As of now, we'll use a placeholder approach
-    # Anthropic doesn't have a public embeddings API yet
-    # We'll implement a workaround using text hashing
-    # When Anthropic releases embeddings API, we'll update this
-    
-    # For now, we'll store text and use simple keyword matching
-    # This is temporary until proper embeddings are available
-    return None
+def _ensure_table():
+    con = _conn()
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS memories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content TEXT NOT NULL,
+            metadata TEXT DEFAULT '{}',
+            created_at REAL NOT NULL
+        )
+    """)
+    con.commit()
+    con.close()
+
+_ensure_table()
 
 
 def store_memory(content: str, metadata: dict = None):
-    """
-    Store a memory in the vector database
-    
-    Args:
-        content: The text content to store
-        metadata: Optional metadata (user, timestamp, tags, etc.)
-    """
+    import json
     try:
-        data = {
-            "content": content,
-            "metadata": metadata or {}
-        }
-        
-        result = supabase.table("memories").insert(data).execute()
-        return result.data[0] if result.data else None
-        
+        con = _conn()
+        con.execute(
+            "INSERT INTO memories (content, metadata, created_at) VALUES (?, ?, ?)",
+            (content, json.dumps(metadata or {}), time.time())
+        )
+        con.commit()
+        con.close()
     except Exception as e:
-        print(f"Error storing memory: {e}")
-        return None
+        print(f"Memory store error: {e}")
 
 
-def search_memories(query: str, limit: int = 5):
-    """
-    Search for relevant memories
-    
-    Args:
-        query: The search query
-        limit: Maximum number of results
-    
-    Returns:
-        List of relevant memories
-    """
+def search_memories(query: str, limit: int = 5) -> list:
+    """Simple keyword search — good enough for llama3 context injection."""
     try:
-        # For now, use full-text search
-        # We'll upgrade to vector search when embeddings are available
-        result = supabase.table("memories") \
-            .select("*") \
-            .text_search("content", query) \
-            .limit(limit) \
-            .execute()
-        
-        return result.data if result.data else []
-        
+        con = _conn()
+        words = query.lower().split()
+        # Score each memory by how many query words it contains
+        rows = con.execute(
+            "SELECT content, metadata FROM memories ORDER BY created_at DESC LIMIT 100"
+        ).fetchall()
+        con.close()
+        scored = []
+        for content, meta in rows:
+            score = sum(1 for w in words if w in content.lower())
+            if score > 0:
+                scored.append((score, {"content": content, "metadata": meta}))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [item for _, item in scored[:limit]]
     except Exception as e:
-        print(f"Error searching memories: {e}")
-        # Fallback to getting recent memories
-        result = supabase.table("memories") \
-            .select("*") \
-            .order("created_at", desc=True) \
-            .limit(limit) \
-            .execute()
-        
-        return result.data if result.data else []
+        print(f"Memory search error: {e}")
+        return []
 
 
-def get_recent_memories(limit: int = 10):
-    """
-    Get the most recent memories
-    
-    Args:
-        limit: Number of memories to retrieve
-    
-    Returns:
-        List of recent memories
-    """
+def get_recent_memories(limit: int = 10) -> list:
     try:
-        result = supabase.table("memories") \
-            .select("*") \
-            .order("created_at", desc=True) \
-            .limit(limit) \
-            .execute()
-        
-        return result.data if result.data else []
-        
+        con = _conn()
+        rows = con.execute(
+            "SELECT content, metadata FROM memories ORDER BY created_at DESC LIMIT ?",
+            (limit,)
+        ).fetchall()
+        con.close()
+        return [{"content": r[0], "metadata": r[1]} for r in rows]
     except Exception as e:
-        print(f"Error getting recent memories: {e}")
+        print(f"Memory fetch error: {e}")
         return []

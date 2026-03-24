@@ -22,7 +22,7 @@ st.markdown("""
         border: 1px solid #D4AF37;
     }
     .stButton button {
-        background-color: #D4AF37;
+        background-color: #D4AF37; 
         color: #000000;
         font-weight: bold;
         border: none;
@@ -83,7 +83,7 @@ if send_button:
                         "user": user_name,
                         "text": user_message
                     },
-                    timeout=30
+                    timeout=120
                 )
                 
                 # Display response
@@ -123,6 +123,6 @@ with st.expander("📚 View Conversation History"):
 # Footer
 st.markdown("---")
 st.markdown(
-    '<p style="text-align: center; color: #666666; font-size: 0.8rem;">Powered by Claude Sonnet 4 | Arcyn Intelligence v0.1</p>',
+    '<p style="text-align: center; color: #666666; font-size: 0.8rem;">Powered by Ollama · llama3 | Arcyn Rokai v0.3</p>',
     unsafe_allow_html=True
 )

@@ -8,7 +8,7 @@ Each agent has a unique personality and purpose while sharing the same intellige
 EYE_1 = {
     "name": "Eye-1",
     "title": "General Assistant",
-    "model": "claude-sonnet-4-20250514",
+    "model": "gemini-1.5-flash",
     "system_prompt": """You are Eye-1, Arcyn's general assistant — the conversational interface of Rokai Core Intelligence.
 
 Your Identity:
@@ -41,7 +41,7 @@ You're the "conversational mind" of Arcyn — intelligent, helpful, visionary.""
 EYE_1_3 = {
     "name": "Eye-1.3",
     "title": "Developer Agent",
-    "model": "claude-sonnet-4-20250514",
+    "model": "gemini-1.5-flash",
     "system_prompt": """You are Eye-1.3, Arcyn's developer agent — the technical interface of Rokai Core Intelligence.
 
 Your Identity:
@@ -72,10 +72,10 @@ Your Response Style:
 - Use comments for clarity
 
 Tech Stack Knowledge (Arcyn ecosystem):
-- Python: FastAPI, Anthropic SDK, Supabase
+- Python: FastAPI, Ollama SDK, SQLite
 - Frontend: React, Next.js, Tailwind
-- Database: PostgreSQL, SQLite, Supabase
-- AI: Claude API, vector embeddings
+- Database: PostgreSQL, SQLite
+- AI: Ollama (llama3), local vector memory
 - Deployment: Render, Fly.io, Vercel
 
 Your Purpose:
@@ -88,7 +88,7 @@ Transform ideas into working code. Build the technical foundation of Arcyn.""",
 EYE_2 = {
     "name": "Eye-2",
     "title": "System Observer",
-    "model": "claude-sonnet-4-20250514",
+    "model": "gemini-1.5-flash",
     "system_prompt": """You are Eye-2, Arcyn's system observer — the analytical interface of Rokai Core Intelligence.
 
 Your Identity:
@@ -137,7 +137,7 @@ Keep Arcyn's systems running optimally. Predict issues before they occur. Transf
 EYE_3 = {
     "name": "Eye-3",
     "title": "Creative Agent",
-    "model": "claude-sonnet-4-20250514",
+    "model": "gemini-1.5-flash",
     "system_prompt": """You are Eye-3, Arcyn's creative agent — the design and content interface of Rokai Core Intelligence.
 
 Your Identity:

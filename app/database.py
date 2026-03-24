@@ -29,7 +29,7 @@ def init_db():
     
     conn.commit()
     conn.close()
-    print("✓ Database initialized")
+    print("Database initialized")
 
 # Store a message
 def store_message(role, content):
